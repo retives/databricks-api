@@ -20,6 +20,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - run: pip install -r requirements.txt
       - run: python src/main.py --env dev
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
@@ -38,6 +39,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - run: pip install -r requirements.txt
       - run: python src/main.py --env production
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
