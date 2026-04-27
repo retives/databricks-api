@@ -1,0 +1,46 @@
+name: Databricks CI/CD
+
+on:
+  push:
+    branches: [main, dev/*]
+  pull_request:
+    branches: [main, dev/*]
+  workflow_dispatch:
+
+concurrency:
+  group: databricks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  development:
+    name: "Development"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python main.py --env dev
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+          EMAIL: ${{ secrets.DATABRICKS_EMAIL }}
+
+  production:
+    name: "Production"
+    runs-on: ubuntu-latest
+    environment: production
+    needs: development
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python main.py --env production
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+          EMAIL: ${{ secrets.DATABRICKS_EMAIL }}
