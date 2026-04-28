@@ -3,8 +3,13 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
+import os
 
 host = os.getenv("DATABRICKS_HOST")
+if not host:
+    print("ERROR: DATABRICKS_HOST environment variable is not set!")
+else:
+    print(f"DATABRICKS_HOST is set (Length: {len(host)})")
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 email = os.getenv("EMAIL")
