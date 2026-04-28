@@ -13,6 +13,7 @@ else:
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 email = os.getenv("EMAIL")
+pipeline_id = "35dc93cc-05e2-41a3-a00d-9a291af3a9fd"
 
 api = DatabricksAPI(host, client_id, client_secret, email)
 cluster_id = None
@@ -31,9 +32,13 @@ try:
     final_status = api.jobs.monitor_run(run_id)
 
     if final_status == "SUCCESS":
-        print("Data Pipeline completed successfully.")
+        print("Job completed successfully.")
     else:
-        print(f"Pipeline failed with status: {final_status}")
+        print(f"Job failed with status: {final_status}")
+
+    # Run a pipeline
+    update_id = api.pipelines.start_update(pipeline_id)
+    api.pipelines.monitor_update(pipeline_id, update_id)
 
 # Cleanup to avoid residual resources
 finally:

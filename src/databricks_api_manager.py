@@ -15,6 +15,7 @@ class DatabricksAPI:
         self.email = email
         self.clusters = self.ClusterManager(self)
         self.jobs = self.JobManager(self)
+        self.pipelines = self.PipelineManager(self)
 
     def _get_oauth_token(self):
         url = f"{self.host}/oidc/v1/token"
@@ -141,7 +142,7 @@ class DatabricksAPI:
                 if life_cycle == "BLOCKED":
                     print("Run is BLOCKED. Check cluster resources.")
                 else:
-                    print(f"Status: {life_cycle}...", end="\r")
+                    print(f"Status: {life_cycle}")
 
                 time.sleep(poll_interval)
 
@@ -149,6 +150,46 @@ class DatabricksAPI:
             url = f"{self.outer.host}/api/2.1/jobs/runs/get"
             resp = requests.get(url, params={"run_id": run_id}, headers=self.outer.headers)
             return resp.json().get("state", {})
+
+    class PipelineManager:
+        def __init__(self, outer):
+            self.outer = outer
+
+        def start_update(self, pipeline_id, full_refresh=False):
+            url = f"{self.outer.host}/api/2.0/pipelines/{pipeline_id}/updates"
+            resp = requests.post(url, json={"full_refresh": full_refresh}, headers=self.outer.headers)
+
+            if resp.status_code == 409:
+                print("Pipeline is already busy. Fetching latest update ID...")
+                pipe_url = f"{self.outer.host}/api/2.0/pipelines/{pipeline_id}"
+                pipe_data = requests.get(pipe_url, headers=self.outer.headers).json()
+
+                updates = pipe_data.get("latest_updates", [])
+                if updates:
+                    return updates[0].get("update_id")
+                raise Exception("Pipeline is busy but no update history found.")
+
+            resp.raise_for_status()
+            return resp.json().get("update_id")
+
+        def get_update_status(self, pipeline_id, update_id):
+            url = f"{self.outer.host}/api/2.0/pipelines/{pipeline_id}/updates/{update_id}"
+            resp = requests.get(url, headers=self.outer.headers)
+            resp.raise_for_status()
+            data = resp.json()
+            return data.get("update", data)
+
+        def monitor_update(self, pipeline_id, update_id, poll_interval=10):
+            print(f"Monitoring Pipeline Update: {update_id}")
+            while True:
+                update_info = self.get_update_status(pipeline_id, update_id)
+                state = update_info.get("state")
+                if state in ["COMPLETED", "FAILED", "CANCELED"]:
+                    print(f"\nPipeline Update Finished. Final State: {state}")
+                    return state
+
+                print(f"Pipeline Status: {state if state else 'UNKNOWN'}")
+                time.sleep(poll_interval)
 
     def wait_for_cluster(self, cluster_id):
         url = f"{self.host}/api/2.1/clusters/get"
