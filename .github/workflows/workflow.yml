@@ -25,9 +25,9 @@ jobs:
       - run: python src/main.py --env dev
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
-          EMAIL: ${{ secrets.DATABRICKS_EMAIL }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          EMAIL: ${{ secrets.EMAIL }}
 
   production:
     name: "Production"
@@ -44,6 +44,6 @@ jobs:
       - run: python src/main.py --env production
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
-          EMAIL: ${{ secrets.DATABRICKS_EMAIL }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          EMAIL: ${{ secrets.EMAIL }}
